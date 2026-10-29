@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Driver Phone Book — Chakra E-Trans</title>
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0a4d40">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Driver Book">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#0b1f1c;
+    --paper:#f6f8f7;
+    --panel:#ffffff;
+    --line:#dde5e2;
+    --teal:#0f6e5c;
+    --teal-dark:#0a4d40;
+    --teal-tint:#e4f2ee;
+    --amber:#c9821a;
+    --amber-tint:#fbf0dd;
+    --grey:#8a9791;
+    --danger:#b3412e;
+    --danger-tint:#f7e9e5;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'Manrope',system-ui,sans-serif;
+    min-height:100vh;
+  }
+
+  /* ---------- header ---------- */
+  header{
+    background:var(--teal-dark);
+    color:#eef7f4;
+    padding:22px 18px 68px;
+    position:relative;
+    overflow:hidden;
+  }
+  header::before{
+    content:"";
+    position:absolute;
+    right:-60px; top:-60px;
+    width:220px; height:220px;
+    border-radius:50%;
+    background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.10), transparent 70%);
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:#9fd6c6;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:#4fe3b8;box-shadow:0 0 0 3px rgba(79,227,184,.25);}
+  h1{
+    margin:8px 0 2px;
+    font-size:26px;
+    font-weight:800;
+    letter-spacing:-.02em;
+  }
+  .sub{
+    font-size:13.5px;
+    color:#bcded4;
+    margin:0;
+  }
+
+  /* ---------- search card (overlaps header) ---------- */
+  .search-wrap{
+    max-width:760px;
+    margin:-46px auto 0;
+    padding:0 14px;
+    position:relative;
+    z-index:5;
+  }
+  .search-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    box-shadow:0 10px 26px -12px rgba(10,40,33,.28);
+    padding:12px;
+    display:flex;
+    gap:8px;
+    align-items:center;
+  }
+  .search-card svg{flex:0 0 auto; color:var(--grey);}
+  .search-card input{
+    border:none;
+    outline:none;
+    flex:1;
+    font-family:'Manrope',sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    background:transparent;
+    min-width:0;
+  }
+  .search-card input::placeholder{color:#a7b3ae;}
+  .clear-btn{
+    border:none;
+    background:var(--paper);
+    color:var(--grey);
+    width:26px;height:26px;
+    border-radius:50%;
+    font-size:14px;
+    cursor:pointer;
+    display:none;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto;
+  }
+  .clear-btn.show{display:flex;}
+
+  /* ---------- tabs ---------- */
+  .tabs{
+    max-width:760px;
+    margin:14px auto 0;
+    padding:0 14px;
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    scrollbar-width:none;
+  }
+  .tabs::-webkit-scrollbar{display:none;}
+  .tab{
+    flex:0 0 auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    font-weight:500;
+    letter-spacing:.01em;
+    padding:9px 14px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:#5b6b65;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:7px;
+    white-space:nowrap;
+    transition:background .12s,color .12s,border-color .12s;
+  }
+  .tab .n{
+    font-weight:700;
+    background:var(--paper);
+    padding:1px 6px;
+    border-radius:999px;
+    font-size:11px;
+  }
+  .tab.active{background:var(--teal); border-color:var(--teal); color:#fff;}
+  .tab.active .n{background:rgba(255,255,255,.22); color:#fff;}
+
+  /* ---------- list ---------- */
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:14px 14px 60px;
+  }
+  .count-row{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:var(--grey);
+    padding:4px 4px 10px;
+    letter-spacing:.03em;
+  }
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 12px 12px 14px;
+    margin-bottom:8px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .avatar{
+    flex:0 0 auto;
+    width:40px;height:40px;
+    border-radius:10px;
+    background:var(--teal-tint);
+    color:var(--teal-dark);
+    font-weight:700;
+    font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+    letter-spacing:.02em;
+  }
+  .info{flex:1; min-width:0;}
+  .name{
+    font-size:14.5px;
+    font-weight:700;
+    color:var(--ink);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .meta{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11.5px;
+    color:#6c7a75;
+    margin-top:2px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .meta .mob{color:var(--teal-dark); font-weight:600;}
+  .badge{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    font-weight:600;
+    letter-spacing:.05em;
+    padding:2px 7px;
+    border-radius:999px;
+    text-transform:uppercase;
+  }
+  .badge.active{background:var(--teal-tint); color:var(--teal-dark);}
+  .badge.inactive{background:var(--amber-tint); color:var(--amber);}
+  .badge.terminated{background:var(--danger-tint); color:var(--danger);}
+  .badge.others{background:#eee; color:#777;}
+
+  .actions{
+    flex:0 0 auto;
+    display:flex;
+    gap:8px;
+  }
+  .call-btn{
+    width:42px;height:42px;
+    border-radius:50%;
+    background:var(--teal);
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    text-decoration:none;
+    box-shadow:0 4px 10px -4px rgba(15,110,92,.55);
+    transition:transform .1s, background .12s;
+  }
+  .call-btn:active{transform:scale(.92); background:var(--teal-dark);}
+  .whatsapp-btn{
+    width:42px;height:42px;
+    border-radius:50%;
+    background:#25D366;
+    color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    text-decoration:none;
+    box-shadow:0 4px 10px -4px rgba(37,211,102,.55);
+    transition:transform .1s, background .12s;
+  }
+  .whatsapp-btn:active{transform:scale(.92); background:#1eb857;}
+
+  .empty{
+    text-align:center;
+    padding:70px 20px;
+    color:var(--grey);
+  }
+  .empty svg{opacity:.4; margin-bottom:10px;}
+  .empty p{margin:0; font-size:14px;}
+
+  @media (max-width:420px){
+    h1{font-size:22px;}
+    .name{font-size:14px;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow"><span class="dot"></span> CHAKRA E-TRANS &middot; DEPOT DIRECTORY</div>
+  <h1>Active Drivers Phone Book</h1>
+  <p class="sub">Search by name, phone number or driver ID. Tap the call button to dial.</p>
+</header>
+
+<div class="search-wrap">
+  <div class="search-card">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    <input id="searchInput" type="text" placeholder="Search name, phone number or driver ID..." autocomplete="off">
+    <button class="clear-btn" id="clearBtn" title="Clear">&times;</button>
+  </div>
+</div>
+
+
+<main>
+  <div class="count-row" id="countRow"></div>
+  <div id="list"></div>
+</main>
+
+<script>
+const DRIVERS = [{"id": "30323", "name": "GANGADHARA SRINIVAS", "mobile": "9704750325"}, {"id": "30330", "name": "MAVURAPU KOTESHWAR", "mobile": "7702366839"}, {"id": "30331", "name": "GADAPA YADAGIRI", "mobile": "9908781136"}, {"id": "30334", "name": "KALUVALA SANTHOSH", "mobile": "9000344976"}, {"id": "30338", "name": "ORAGANTI JAYAKAR", "mobile": "8074040487"}, {"id": "30342", "name": "LINGALA RAJENDAR", "mobile": "8497923623"}, {"id": "30343", "name": "THATIPELLI VINAY", "mobile": "6305347829"}, {"id": "30344", "name": "UDARI RAMMURTHY", "mobile": "9666880188"}, {"id": "30345", "name": "Thumma Laxmaiah", "mobile": "9550653783"}, {"id": "30346", "name": "MUKKISA SATHYAPAL REDDY", "mobile": "9346828070"}, {"id": "30348", "name": "MARAPALLI RAMESH", "mobile": "9704090764"}, {"id": "30349", "name": "GUGULOTH RAMESH", "mobile": "7702364035"}, {"id": "30350", "name": "BHUKYA BALARAJU", "mobile": "9951646055"}, {"id": "30353", "name": "SUNKAPAKA KIRAN KUMAR", "mobile": "9550494924"}, {"id": "30358", "name": "DAMMA NARSIMHAREDDY", "mobile": "9182629674"}, {"id": "30363", "name": "KUMMARI SANJEEV KUMAR", "mobile": "9959650351"}, {"id": "30368", "name": "INDARAPU RAJENDER", "mobile": "9573897871"}, {"id": "30371", "name": "KARNE HARISH", "mobile": "7995458479"}, {"id": "30375", "name": "VENENKA SRIKANTH", "mobile": "7287859003"}, {"id": "30377", "name": "GORUGONTHULA ANJAIAH", "mobile": "6302472491"}, {"id": "30380", "name": "SUNKAPAKA SURESH", "mobile": "7032271179"}, {"id": "30385", "name": "JINUKA RAMESH", "mobile": "9182279385"}, {"id": "30388", "name": "KANAKAM THIRUPATHI", "mobile": "6303210389"}, {"id": "30391", "name": "KALVA RAJU", "mobile": "8374455867"}, {"id": "30393", "name": "KAVVAMPELLI SRINIVAS", "mobile": "9989858909"}, {"id": "30396", "name": "KALYANAPU LINGAMURTHY", "mobile": "8106455269"}, {"id": "30397", "name": "NALLA VINOD", "mobile": "9505083010"}, {"id": "30399", "name": "JANGAM NAGARAJU", "mobile": "9177202393"}, {"id": "30401", "name": "VEMULA RAGHUPATHI", "mobile": "9959410447"}, {"id": "30410", "name": "AREPELLI SRINIVAS", "mobile": "6303157553"}, {"id": "30412", "name": "SAMBODU NARESHBABU", "mobile": "8099956660"}, {"id": "30413", "name": "ELUKAPALLY KIRANKUMAR", "mobile": "9676761819"}, {"id": "30415", "name": "GOSHIKA PRAVEEN", "mobile": "9885999712"}, {"id": "30420", "name": "BOJJA SHIVANAND", "mobile": "9705573249"}, {"id": "30422", "name": "JUTTU SURESH", "mobile": "7569160906"}, {"id": "30426", "name": "MOHAMMED TAJ UDDIN", "mobile": "9397006164"}, {"id": "30429", "name": "CHIKATLA SAMPATH", "mobile": "9912359145"}, {"id": "30434", "name": "THEEGALA AMARENDER", "mobile": "7842855426"}, {"id": "30438", "name": "KONETI THIRUPATHI", "mobile": "9493370942"}, {"id": "30440", "name": "GORUVANTHULA KUMAR", "mobile": "7799585346"}, {"id": "30443", "name": "TUTI SRIKANTH", "mobile": "9177104168"}, {"id": "30444", "name": "SOMALLA RAJ KUMAR", "mobile": "9949048189"}, {"id": "30446", "name": "ANNE GANGARAJU", "mobile": "6301839746"}, {"id": "30448", "name": "MANUPAKA VENKATESHWARLU", "mobile": "7893749368"}, {"id": "30450", "name": "MITTA PRAVEEN", "mobile": "9959536057"}, {"id": "30451", "name": "KANAKATLA RAVI", "mobile": "9550588416"}, {"id": "30459", "name": "GADAMALLA THIRUPATHI", "mobile": "8639909571"}, {"id": "30460", "name": "RAPARTHI VENU", "mobile": "9908760168"}, {"id": "30463", "name": "CHOPPADANDI SANTHOSH", "mobile": "9848541633"}, {"id": "30464", "name": "RAGALLA GANGA RAJU", "mobile": "8008085351"}, {"id": "30465", "name": "MOHAMMED MAZHARUDDIN", "mobile": "9441770021"}, {"id": "30466", "name": "MEKALA PRABHAKAR", "mobile": "8008085351"}, {"id": "30467", "name": "GANDE VENKATESH", "mobile": "9652075309"}, {"id": "30468", "name": "DUDDELA PRAVEEN", "mobile": "9652671408"}, {"id": "30472", "name": "PENCHALA MALLAIAH", "mobile": "9959920800"}, {"id": "30473", "name": "ANAGANDULA SRINIVAS", "mobile": "9000996397"}, {"id": "30474", "name": "SUNCHU RAJU", "mobile": "7981354905"}, {"id": "30480", "name": "SHANIGARAPU KANTHAIAH", "mobile": "6301179026"}, {"id": "30483", "name": "MULKALA JEEVAN", "mobile": "9704297208"}, {"id": "30488", "name": "KASARLA SRAVAN KUMAR", "mobile": "9676715213"}, {"id": "30489", "name": "JANGILI SATHISH KUMAR", "mobile": "9000344147"}, {"id": "30490", "name": "CHOLLANGI RAMAKRISHNA", "mobile": "9100570706"}, {"id": "30491", "name": "MAHAMMED SALMAN KHAN", "mobile": "9949455917"}, {"id": "30492", "name": "MADDELA UDAY", "mobile": "7981380595"}, {"id": "30495", "name": "NEDUNURI SAMPATH", "mobile": "9441672534"}, {"id": "30496", "name": "KUKKALA SHIVA KUMAR", "mobile": "9912332957"}, {"id": "30497", "name": "JANGILI MADHUKAR", "mobile": "9849947182"}, {"id": "30498", "name": "JAJALA RAJU", "mobile": "9000216725"}, {"id": "30499", "name": "BOORLA SATHISH", "mobile": "9000132660"}, {"id": "30501", "name": "JUNUGARI VENKATESH", "mobile": "7842222094"}, {"id": "30502", "name": "PITTALA RAMESH", "mobile": "9848603636"}, {"id": "30503", "name": "KONDI KOPPULA PRASHANTH", "mobile": "7893235527"}, {"id": "30504", "name": "BHUKYA THIRUPATHI", "mobile": "9701161475"}, {"id": "30505", "name": "CHOPPADANDI VENKATASWAMY", "mobile": "9849470046"}, {"id": "30506", "name": "RADAM RAJENDRAPRASAD", "mobile": "8790382204"}, {"id": "30507", "name": "MAHANKALI PRAVEEN", "mobile": "9573384475"}, {"id": "30508", "name": "GOPAGONI SADANANDAM", "mobile": "9505188259"}, {"id": "30511", "name": "THATI VENKATESH", "mobile": "8464846340"}, {"id": "30512", "name": "TAKUR SATHEESH", "mobile": "9440727750"}, {"id": "30513", "name": "MERUGU SRINIVAS", "mobile": "9032241178"}, {"id": "30517", "name": "AGURLA SRINIVAS", "mobile": "9912918355"}, {"id": "30519", "name": "PITTALA RAMAKRISHNA", "mobile": "9912791032"}, {"id": "30521", "name": "RODDA GANESH", "mobile": "9100344984"}, {"id": "30524", "name": "KANKUNALA SHANKAR", "mobile": "9959858766"}, {"id": "30525", "name": "GODARI KOMURAIAH", "mobile": "9701312607"}, {"id": "30529", "name": "GOKULAKONDA NAVEEN", "mobile": "8466837460"}, {"id": "30530", "name": "LAVUDYA RAVINDAR", "mobile": "7799662013"}, {"id": "30536", "name": "NERELLA SRUJAN", "mobile": "8897999678"}, {"id": "30537", "name": "GANDE THIRUPATHI", "mobile": "9704970281"}, {"id": "30538", "name": "KOLIPAKA MAHENDAR", "mobile": "9959083010"}, {"id": "30542", "name": "PANDI SRIKANTH", "mobile": "9908859577"}, {"id": "30546", "name": "NITTU ANIL", "mobile": "9676230665"}, {"id": "30547", "name": "GAJARLA SAIRAM", "mobile": "9381034642"}, {"id": "30548", "name": "VADUKAPURAM VIRAT", "mobile": "9515565603"}, {"id": "30552", "name": "RAPAKA PRATHAP KUMAR", "mobile": "9014949244"}, {"id": "30555", "name": "ARIF BAIG MIRZA", "mobile": "9849356176"}, {"id": "30559", "name": "ADRAVENA SANTHOSH KUMAR", "mobile": "9963863917"}, {"id": "30562", "name": "MUKTHI MADHU", "mobile": "9440445951"}, {"id": "30563", "name": "SANTI NAGESH", "mobile": "8522009209"}, {"id": "30566", "name": "MARGAM ANJANEYULU", "mobile": "9491366280"}, {"id": "30567", "name": "KUTHADI SRINU", "mobile": "8790168153"}, {"id": "30571", "name": "GAGGURI SRIKANTH", "mobile": "7995377364"}, {"id": "30573", "name": "BETTHAPU DINAKAR", "mobile": "8978113768"}, {"id": "30575", "name": "GANAPATHI VIJAY", "mobile": "7995454586"}, {"id": "30579", "name": "JOOPAKA SAMMAIAH", "mobile": "8008909157"}, {"id": "30580", "name": "PENCHALA VENKATESH", "mobile": "9963052351"}, {"id": "30583", "name": "BADAVATH SAMMAIAH", "mobile": "9985583736"}, {"id": "30585", "name": "CHILUKA AMAR", "mobile": "7382743596"}, {"id": "30586", "name": "SAI KRISHNA REDDY DANDA", "mobile": "9392384832"}, {"id": "30588", "name": "CHINNALA HARISH", "mobile": "7780711378"}, {"id": "30590", "name": "THODETI ANIL", "mobile": "8712130505"}, {"id": "30591", "name": "GUMMADI ANIL KUMAR", "mobile": "9704507317"}, {"id": "30592", "name": "THUNIKI RAJ KUMAR", "mobile": "9502670059"}, {"id": "30593", "name": "YASAM PRASHANTH", "mobile": "9100150834"}, {"id": "30594", "name": "TARALLA PREM KUMAR", "mobile": "9182954427"}, {"id": "30595", "name": "BANDI NARESH KUMAR", "mobile": "9959244134"}, {"id": "30597", "name": "KOYYADA RAJAIAH", "mobile": "9492302010"}, {"id": "30600", "name": "KOYYADA CHANDRASHEKER", "mobile": "9949511073"}, {"id": "30601", "name": "PUPPALA RAJU", "mobile": "7995517493"}, {"id": "30604", "name": "DEVUNOORI NARESH", "mobile": "7893789108"}, {"id": "30606", "name": "SYED MASOOD", "mobile": "9036041336"}, {"id": "30607", "name": "JADALA THIRUPATHI", "mobile": "7989737892"}, {"id": "30610", "name": "VISHAL V", "mobile": "9490357551"}, {"id": "30612", "name": "AKKAPAKA THIRUPATHI", "mobile": "9100673669"}, {"id": "30613", "name": "CHIPPAKURTHI SATHISH", "mobile": "8465084340"}, {"id": "30615", "name": "MOHAMMAD SADDAM HUSSAIN", "mobile": "9542061225"}, {"id": "30616", "name": "PURAMSHETTI KAMALAKAR", "mobile": "9989469261"}, {"id": "30618", "name": "MACHA SHEKHAR", "mobile": "7330906432"}, {"id": "30621", "name": "MITTAPALLI SATISH", "mobile": "9603409292"}, {"id": "30622", "name": "NALLA RAJENDAR REDDY", "mobile": "9100793313"}, {"id": "30625", "name": "MUTHYAM HARISH", "mobile": "8328436895"}, {"id": "30626", "name": "CHITKOORI SATHISH KUMAR", "mobile": "8790228300"}, {"id": "30631", "name": "BHOOMALLA NARESH", "mobile": "8333844001"}, {"id": "30632", "name": "ABDUL SALEEM", "mobile": "9866649318"}, {"id": "30633", "name": "IMRAN KHAN MD", "mobile": "9704970281"}, {"id": "30634", "name": "BOLGAM ANIL", "mobile": "9010310843"}, {"id": "30638", "name": "DADI LACHAIAH", "mobile": "7760181055"}, {"id": "30639", "name": "NAGAVATH BHASKAR", "mobile": "9640157291"}, {"id": "30640", "name": "DANDIPATA RAJKAMAL", "mobile": "7095399275"}, {"id": "30641", "name": "JAGIRI ARAVIND", "mobile": "7673949747"}, {"id": "30642", "name": "DURSETI SRIKANTH", "mobile": "9949427566"}, {"id": "30643", "name": "NAMPALLY MAHESH", "mobile": "9581256456"}, {"id": "30644", "name": "KUSUMBA MAHESH", "mobile": "9550952819"}, {"id": "30645", "name": "KOTHAOALLY BHASKAR", "mobile": "6301092856"}, {"id": "30646", "name": "NAKKA SRINIVAS", "mobile": "9676237480"}, {"id": "30647", "name": "ERRA SURESH", "mobile": "9491244121"}, {"id": "30648", "name": "MOHAMMAD MOSIN SHAREEF", "mobile": "9704121792"}, {"id": "30649", "name": "KUMMARI RAKESH", "mobile": "8008357764"}, {"id": "30650", "name": "KODIMUNJA ARUN", "mobile": "7993411690"}, {"id": "30651", "name": "BOINI PRASHANTH", "mobile": "9515590354"}, {"id": "30652", "name": "YALLAVENI SRINIVAS", "mobile": "9000552592"}, {"id": "30653", "name": "MAMIDI RAJASHEKAR REDDY", "mobile": "9652058832"}, {"id": "30655", "name": "MARAM ASHOK", "mobile": "8897371727"}, {"id": "30656", "name": "ARKUTI RAJENDAR", "mobile": "7893682598"}, {"id": "30657", "name": "BODDULA AKASH", "mobile": "8790972447"}, {"id": "30658", "name": "BANALA KOMURAIAH", "mobile": "9849554515"}, {"id": "30660", "name": "ARUKALA PREM SAGAR", "mobile": "9652728630"}, {"id": "30661", "name": "PENTA SUDHAKAR", "mobile": "8328115500"}, {"id": "30666", "name": "GARREPALLI KRANTHI KUMAR", "mobile": "8639497272"}, {"id": "30669", "name": "SAMPATH JETTI", "mobile": "9515420639"}, {"id": "30670", "name": "KATKURI THIRMAL", "mobile": "8106454731"}, {"id": "30671", "name": "KODATI MADHU", "mobile": "9700631908"}, {"id": "30676", "name": "MUTHYALA SURESH", "mobile": "9704660223"}, {"id": "30678", "name": "ATHIRAJULA SURENDAR", "mobile": "8897887285"}, {"id": "30679", "name": "KALWALA SHEKAR", "mobile": "9394242143"}, {"id": "30684", "name": "PAATAKULA RAYAMALLU", "mobile": "9676020093"}, {"id": "30685", "name": "ARELLY SWAMY", "mobile": "9000656454"}, {"id": "30686", "name": "VARUKOLU SRINIVAS", "mobile": "9849633900"}, {"id": "30687", "name": "YASHODA SURESH", "mobile": "7702068101"}, {"id": "30688", "name": "VAVINEELA SATHISH", "mobile": "9966686526"}, {"id": "30689", "name": "KAMERA CHANDRASHEKAR", "mobile": "9701191138"}, {"id": "30693", "name": "BUTTI VENKATESH", "mobile": "9989364788"}, {"id": "30696", "name": "MACHA RAKESH", "mobile": "8328262138"}, {"id": "30698", "name": "ENAGANDULA MALLESH", "mobile": "9989795949"}, {"id": "30704", "name": "KATTAGONI SRIDHAR", "mobile": "9676053939"}, {"id": "30706", "name": "MEDI MADHU", "mobile": "8555982306"}, {"id": "30709", "name": "KONKATI ANIL", "mobile": "8790417037"}, {"id": "30710", "name": "BALASANI RAJU", "mobile": "9515681962"}, {"id": "30711", "name": "APPAALA MAHENDER", "mobile": "9963976471"}, {"id": "30716", "name": "SRIRAMULA SRIKANTH", "mobile": "9398051227"}, {"id": "30718", "name": "MOHAMMAD MAHMOOD", "mobile": "7032118961"}, {"id": "30719", "name": "AREPALLI SHEKAR", "mobile": "7995470190"}, {"id": "30720", "name": "VARIKUPPALA SRINVAS", "mobile": "9491763973"}, {"id": "30724", "name": "DAMERA SHYAM SUNDAR", "mobile": "9703474794"}, {"id": "30725", "name": "AREPALLY RAJESH", "mobile": "9908301798"}, {"id": "30727", "name": "BANDARI SHEKAR", "mobile": "8096124708"}, {"id": "30728", "name": "CHOPPADANDI RAVINDER", "mobile": "8639061324"}, {"id": "30730", "name": "JADI VINOD KUMAR", "mobile": "8978680591"}, {"id": "30731", "name": "METHUKU SURESH", "mobile": "9948266765"}, {"id": "30732", "name": "PEDDIGARI REMESH", "mobile": "9989737440"}, {"id": "30733", "name": "VUKANTI JITHENDAR REDDY", "mobile": "8374675596"}, {"id": "30734", "name": "RANGISHETTI SHARATH BABU", "mobile": "9533388340"}, {"id": "30735", "name": "GANGADHARA NAGARAJU", "mobile": "9948255443"}, {"id": "30737", "name": "KOLA BHANUCHANDAR", "mobile": "8897952420"}, {"id": "30739", "name": "VELPULA SRINIVAS", "mobile": "7337365436"}, {"id": "30740", "name": "SANEVENI NAGARAJU", "mobile": "9666745767"}, {"id": "30742", "name": "UYYALA SURESH", "mobile": "9505268662"}, {"id": "30743", "name": "GUGGILLA RAVI CHANDER", "mobile": "9010906655"}, {"id": "30746", "name": "MOHAMMED KHAJA NIZAMUDDIN", "mobile": "9030540399"}, {"id": "30747", "name": "ASODA THIRUPATHI", "mobile": "8247850320"}, {"id": "30748", "name": "KOLANOORU MUNINDAR", "mobile": "9440451113"}, {"id": "30749", "name": "BATTULA SRINIVAS", "mobile": "7893547377"}, {"id": "30752", "name": "GUGULOTHU RAMESH NAYAK", "mobile": "8185891732"}, {"id": "30753", "name": "KALVALA SRINIVAS", "mobile": "9281010468"}, {"id": "30754", "name": "DUMALA RAMESH", "mobile": "9390831833"}, {"id": "30755", "name": "MUTHYAM SAI CHARAN", "mobile": "9553409496"}, {"id": "30758", "name": "BANDARI SURESH", "mobile": "9989126229"}, {"id": "30759", "name": "KONETI SAI KUMAR", "mobile": "9014364391"}, {"id": "30760", "name": "KALAVENI ANIL", "mobile": "8897938499"}, {"id": "30762", "name": "THOTA RANJITH", "mobile": "9100497500"}, {"id": "30764", "name": "SHYAMKUMAR RAJAIAH ARIKILLA", "mobile": "8208822672"}, {"id": "30767", "name": "KALVA MAHESH", "mobile": "8686812199"}, {"id": "30769", "name": "BOGAM ARAVIND", "mobile": "9000971585"}, {"id": "30770", "name": "MOHAMMED MASOOD ALI", "mobile": "9849512591"}, {"id": "30771", "name": "GONDA SRIKANTH", "mobile": "9182550140"}, {"id": "30772", "name": "VARIKUPPALA RAMESH", "mobile": "9849457323"}, {"id": "30775", "name": "OLLALA MAHESH", "mobile": "9505118053"}, {"id": "30776", "name": "GUJJETI SRINIVAS", "mobile": "7680932009"}, {"id": "30777", "name": "EDUNOORI SHRAVAN", "mobile": "7386405212"}, {"id": "30778", "name": "CHILUMULA DELEEP KUMAR", "mobile": "9014690109"}, {"id": "30779", "name": "RATHANAM SHYAM SUNDER", "mobile": "6302960362"}, {"id": "30781", "name": "MARA LAXMI NARAYANA", "mobile": "9701678487"}, {"id": "30783", "name": "BOLAVENA SAGAR", "mobile": "9618176544"}, {"id": "30786", "name": "MOHAMMAD IMRAN", "mobile": "9701883829"}, {"id": "30787", "name": "SYED AFZAL", "mobile": "9100175118"}, {"id": "30788", "name": "MOHAMMAD AHMED PASHA", "mobile": "9441405319"}, {"id": "30791", "name": "GAJJELA SRIMAN", "mobile": "9492542202"}, {"id": "30792", "name": "GAJULA PAVAN KALYAN", "mobile": "7337437780"}, {"id": "30793", "name": "SHAIK ADIL", "mobile": "8008007318"}, {"id": "30796", "name": "KATKAM SAIRAM", "mobile": "8106571106"}, {"id": "30797", "name": "BANDARI PAVANKALYAN", "mobile": "8978643532"}, {"id": "30798", "name": "POTHARAVENA PRAVEEN", "mobile": "9515321358"}, {"id": "30799", "name": "BOINI AJAY", "mobile": "8008626219"}, {"id": "30800", "name": "SHAKE RIYAZ", "mobile": "6301125386"}, {"id": "30801", "name": "ILAVENI SANTHOSH", "mobile": "9652861125"}, {"id": "30802", "name": "PADALA ABHISHEK", "mobile": "7981749763"}, {"id": "30803", "name": "ENNAM ANIL", "mobile": "7661077214"}, {"id": "30804", "name": "PALLAPU SUDHAKAR", "mobile": "6301440939"}, {"id": "30807", "name": "SHANIGARAM RAMESH", "mobile": "8008317950"}, {"id": "30809", "name": "KALWA ANIL KUMAR", "mobile": "7207230815"}, {"id": "30810", "name": "ABDUL KABEER PASHA", "mobile": "9949407250"}, {"id": "30811", "name": "JUMBIDI NAVEEN", "mobile": "7337521633"}, {"id": "30812", "name": "SALENDRA PREM SAI", "mobile": "9515881370"}, {"id": "30813", "name": "AZMEERA GANGASWAMY", "mobile": "7286002904"}, {"id": "30814", "name": "SAMANTHULA HARISH", "mobile": "9100587385"}, {"id": "30815", "name": "GIKURU SRINIVAS", "mobile": "9705738170"}, {"id": "30820", "name": "BOINI DILEEP", "mobile": "8897767601"}, {"id": "30821", "name": "GOPALA SRINIVAS", "mobile": "9666662697"}, {"id": "30825", "name": "MADDI MURALI", "mobile": "9703674114"}, {"id": "30826", "name": "NOMULA UMAPATHI", "mobile": "9866029591"}, {"id": "30827", "name": "BOTLA ANKOOS", "mobile": "9949401052"}, {"id": "30828", "name": "DOMMATTI RAJU", "mobile": "9963552139"}, {"id": "30832", "name": "DAGGULA SRINIVAS", "mobile": "9676797646"}, {"id": "30833", "name": "LANKA SRINIVAS", "mobile": "9676745055"}, {"id": "30834", "name": "IRUGURALA SWAMY", "mobile": "7569940287"}, {"id": "30836", "name": "GUMMADI RAMESH", "mobile": "9640832011"}, {"id": "30837", "name": "ANUGULA AJAY", "mobile": "9493188076"}, {"id": "30838", "name": "NEELAM BHASKAR", "mobile": "8106503397"}, {"id": "30839", "name": "BOYINI SRINIVAS", "mobile": "9640964386"}, {"id": "30840", "name": "MAHAMMAD NAVEED KHAN", "mobile": "9989120943"}, {"id": "30842", "name": "BOINI SRINIVAS", "mobile": "9542592238"}, {"id": "30843", "name": "ERAGOKKULA VEERENDER", "mobile": "9908984230"}, {"id": "30844", "name": "CHILUMULA PRABHAKAR", "mobile": "9963725514"}, {"id": "30845", "name": "POCHAMPALLI SRINIVAS", "mobile": "7569323280"}, {"id": "30846", "name": "EDUNOORI SANTHOSH KUMAR", "mobile": "9000768564"}, {"id": "30847", "name": "CHEVULA AJAY", "mobile": "8099077751"}, {"id": "30848", "name": "JAKKIREDDY SRINIVAS REDDY", "mobile": "9949571063"}, {"id": "30849", "name": "DAVALLA SANTHOSH", "mobile": "7702758653"}, {"id": "30851", "name": "AKKALA HARISH", "mobile": "9949179174"}, {"id": "30852", "name": "ALKAPALLY SRIKANTH", "mobile": "9502790023"}, {"id": "30853", "name": "DASARI RAJASHAKAR", "mobile": "9502695283"}, {"id": "30854", "name": "VEMUGANTI JANARDHAN", "mobile": "9550186052"}, {"id": "30855", "name": "NUNE NARESH", "mobile": "9866402341"}, {"id": "30856", "name": "SHAIK ANWAR", "mobile": "9492112061"}];
+
+let query = '';
+
+const listEl = document.getElementById('list');
+const countRowEl = document.getElementById('countRow');
+const searchInput = document.getElementById('searchInput');
+const clearBtn = document.getElementById('clearBtn');
+
+function initials(name){
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if(parts.length===0) return '?';
+  if(parts.length===1) return parts[0].slice(0,2).toUpperCase();
+  return (parts[0][0]+parts[1][0]).toUpperCase();
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function renderList(){
+  const q = query.trim().toLowerCase();
+  let filtered = DRIVERS.slice();
+  if(q){
+    filtered = filtered.filter(d =>
+      (d.name||'').toLowerCase().includes(q) ||
+      (d.mobile||'').includes(q) ||
+      (d.id||'').toLowerCase().includes(q)
+    );
+  }
+
+  countRowEl.textContent = q ? `${filtered.length} of ${DRIVERS.length} drivers` : `${DRIVERS.length} active drivers`;
+
+  if(filtered.length===0){
+    listEl.innerHTML = `
+      <div class="empty">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <p>No drivers match your search.</p>
+      </div>`;
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(d => {
+    return `
+    <div class="card">
+      <div class="avatar">${initials(d.name)}</div>
+      <div class="info">
+        <div class="name">${escapeHtml(d.name)}</div>
+        <div class="meta">
+          <span class="mob">${escapeHtml(d.mobile)}</span>
+          <span>&middot; ID ${escapeHtml(d.id)}</span>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="call-btn" href="tel:${escapeHtml(d.mobile)}" title="Call ${escapeHtml(d.name)}">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.37 2.33.57 3.58.57a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.2 2.46.57 3.58a1 1 0 01-.25 1.01l-2.2 2.2z"/></svg>
+        </a>
+        <a class="whatsapp-btn" href="https://wa.me/91${escapeHtml(d.mobile)}" target="_blank" rel="noopener" title="WhatsApp ${escapeHtml(d.name)}">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12.001 2C6.478 2 2 6.477 2 12c0 1.986.579 3.837 1.578 5.396L2 22l4.735-1.542A9.955 9.955 0 0012 22c5.523 0 10-4.477 10-10S17.524 2 12.001 2zm0 18.222a8.19 8.19 0 01-4.362-1.263l-.313-.185-2.803.913.913-2.746-.204-.32A8.194 8.194 0 013.778 12c0-4.535 3.689-8.222 8.223-8.222 4.535 0 8.222 3.687 8.222 8.222 0 4.534-3.687 8.222-8.222 8.222z"/></svg>
+        </a>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+searchInput.addEventListener('input', (e)=>{
+  query = e.target.value;
+  clearBtn.classList.toggle('show', query.length>0);
+  renderList();
+});
+clearBtn.addEventListener('click', ()=>{
+  searchInput.value='';
+  query='';
+  clearBtn.classList.remove('show');
+  searchInput.focus();
+  renderList();
+});
+
+renderList();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+</script>
+
+</body>
+</html>
